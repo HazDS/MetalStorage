@@ -24,6 +24,8 @@ namespace MetalStorage.Integrations
     [HarmonyPatch]
     public static class HarmonyPatches
     {
+        private static readonly HashSet<int> _expandedStorages = new HashSet<int>();
+
         [HarmonyPatch(typeof(BuildManager), nameof(BuildManager.CreateGridItem))]
         [HarmonyPostfix]
         public static void CreateGridItem_Postfix(GridItem __result, ItemInstance item)
@@ -120,6 +122,10 @@ namespace MetalStorage.Integrations
 
         private static void ExpandStorageSlots(PlaceableStorageEntity placeableStorage, string itemId)
         {
+            int instanceId = placeableStorage.GetInstanceID();
+            if (_expandedStorages.Contains(instanceId)) return;
+            _expandedStorages.Add(instanceId);
+
             int extraSlots = Core.GetExtraSlots(itemId);
             if (extraSlots <= 0) return;
 
@@ -156,6 +162,10 @@ namespace MetalStorage.Integrations
 #if IL2CPP
         private static void ExpandStorageSlotsEarly(PlaceableStorageEntity placeableStorage, string itemId)
         {
+            int instanceId = placeableStorage.GetInstanceID();
+            if (_expandedStorages.Contains(instanceId)) return;
+            _expandedStorages.Add(instanceId);
+
             int extraSlots = Core.GetExtraSlots(itemId);
             if (extraSlots <= 0) return;
 
