@@ -7,6 +7,7 @@ using S1API.Rendering;
 using S1API.Shops;
 using S1API.Storage;
 using UnityEngine;
+using System;
 using System.Reflection;
 
 namespace MetalStorage.Features
@@ -17,6 +18,12 @@ namespace MetalStorage.Features
 
         public static readonly HashSet<string> MetalItemIds = new HashSet<string>();
         private static readonly Dictionary<string, Sprite> _loadedIcons = new Dictionary<string, Sprite>();
+        private static readonly Dictionary<string, int> BaseSlotsByItemId = new Dictionary<string, int>
+        {
+            { Constants.ItemIds.SMALL, 6 },
+            { Constants.ItemIds.MEDIUM, 8 },
+            { Constants.ItemIds.LARGE, 10 }
+        };
 
         public static void CreateAllMetalRacks()
         {
@@ -84,6 +91,32 @@ namespace MetalStorage.Features
             }
         }
 
+        private static int GetTargetSlotCount(string itemId, int minimumSlots = 0)
+        {
+            int baseSlots = BaseSlotsByItemId.TryGetValue(itemId, out var baseCount) ? baseCount : 0;
+            int extraSlots = Core.GetExtraSlots(itemId);
+            return Math.Max(baseSlots + extraSlots, minimumSlots);
+        }
+
+        private static void EnsureSlotCapacity(StorageEntity storage, string itemId, int minimumSlots = 0)
+        {
+            if (storage == null || string.IsNullOrEmpty(itemId))
+                return;
+
+            int target = GetTargetSlotCount(itemId, minimumSlots);
+            int current = storage.SlotCount;
+            int missing = target - current;
+
+            if (missing <= 0)
+                return;
+
+            bool success = storage.AddSlots(missing);
+            if (!success)
+            {
+                MelonLogger.Warning($"Failed to expand storage '{itemId}' to {target} slots (current {current})");
+            }
+        }
+
         public static void AddToShops()
         {
             int totalAdded = 0;
@@ -144,21 +177,8 @@ namespace MetalStorage.Features
             if (args?.Storage == null || !MetalItemIds.Contains(args.ItemId))
                 return;
 
-            int extraSlots = Core.GetExtraSlots(args.ItemId);
-            if (extraSlots <= 0)
-                return;
-
-            // Use S1API to safely add slots (handles runtime differences internally)
-            bool success = args.Storage.AddSlots(extraSlots);
-
-            if (success)
-            {
-                MelonLogger.Msg($"Expanded {args.ItemId} storage to {args.Storage.SlotCount} slots");
-            }
-            else
-            {
-                MelonLogger.Warning($"Failed to expand {args.ItemId} storage");
-            }
+            // Ensure slot capacity matches configured target (idempotent for placement and load)
+            EnsureSlotCapacity(args.Storage, args.ItemId);
         }
 
         /// <summary>
@@ -171,20 +191,8 @@ namespace MetalStorage.Features
             if (args?.Storage == null || !MetalItemIds.Contains(args.ItemId))
                 return;
 
-            if (!args.NeedsMoreSlots)
-                return; // Save file has fewer items than current slots
-
-            // Expand to fit saved items
-            bool success = args.Storage.AddSlots(args.AdditionalSlotsNeeded);
-
-            if (success)
-            {
-                MelonLogger.Msg($"Expanded {args.ItemId} storage to {args.Storage.SlotCount} slots for save loading");
-            }
-            else
-            {
-                MelonLogger.Warning($"Failed to expand {args.ItemId} storage for save loading");
-            }
+            // Ensure capacity is at least the configured target and fits saved items
+            EnsureSlotCapacity(args.Storage, args.ItemId, args.ItemCountBeingLoaded);
         }
     }
 }
