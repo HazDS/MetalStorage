@@ -20,23 +20,31 @@ namespace MetalStorage.Features
         private static readonly Dictionary<string, Sprite> _loadedIcons = new Dictionary<string, Sprite>();
         private static readonly Dictionary<string, int> BaseSlotsByItemId = new Dictionary<string, int>
         {
-            { Constants.ItemIds.SMALL, 6 },
-            { Constants.ItemIds.MEDIUM, 8 },
-            { Constants.ItemIds.LARGE, 10 }
+            { Constants.ItemIds.SMALL, 4 },
+            { Constants.ItemIds.MEDIUM, 6 },
+            { Constants.ItemIds.LARGE, 8 }
         };
+        private static bool _eventsRegistered;
+        private static readonly HashSet<int> _expandedStorages = new HashSet<int>();
 
         public static void CreateAllMetalRacks()
         {
             LoadIcons();
 
-            // Register BuildEvents for material customization (replaces Harmony patches)
-            BuildEvents.OnGridItemCreated += OnItemBuilt;
-            BuildEvents.OnSurfaceItemCreated += OnItemBuilt;
-            BuildEvents.OnBuildableItemInitialized += OnItemBuilt;
+            // Only register events once to prevent handler accumulation across scene reloads
+            if (!_eventsRegistered)
+            {
+                // Register BuildEvents for material customization (replaces Harmony patches)
+                BuildEvents.OnGridItemCreated += OnItemBuilt;
+                BuildEvents.OnSurfaceItemCreated += OnItemBuilt;
+                BuildEvents.OnBuildableItemInitialized += OnItemBuilt;
 
-            // Register StorageEvents for slot expansion (replaces Harmony patches)
-            StorageEvents.OnStorageCreated += OnStorageCreated;
-            StorageEvents.OnStorageLoading += OnStorageLoading;
+                // Register StorageEvents for slot expansion (replaces Harmony patches)
+                StorageEvents.OnStorageCreated += OnStorageCreated;
+                StorageEvents.OnStorageLoading += OnStorageLoading;
+
+                _eventsRegistered = true;
+            }
 
             // Create metal variants using S1API
             CreateMetalStorageRack(Constants.StorageRacks.SMALL, "Small Metal Storage Rack", Constants.ItemIds.SMALL, "MetalStorageRack_Small-Icon");
@@ -103,15 +111,28 @@ namespace MetalStorage.Features
             if (storage == null || string.IsNullOrEmpty(itemId))
                 return;
 
+            // Prevent double expansion - track by instance ID
+            int instanceId = storage.GetInstanceID();
+            if (_expandedStorages.Contains(instanceId))
+                return;
+
             int target = GetTargetSlotCount(itemId, minimumSlots);
             int current = storage.SlotCount;
             int missing = target - current;
 
             if (missing <= 0)
+            {
+                // Already at or above target, mark as processed
+                _expandedStorages.Add(instanceId);
                 return;
+            }
 
             bool success = storage.AddSlots(missing);
-            if (!success)
+            if (success)
+            {
+                _expandedStorages.Add(instanceId);
+            }
+            else
             {
                 MelonLogger.Warning($"Failed to expand storage '{itemId}' to {target} slots (current {current})");
             }
