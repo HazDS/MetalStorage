@@ -29,6 +29,9 @@ A MelonLoader mod for Schedule 1 that adds metal variants of storage racks.
 ## Building
 
 ```bash
+# Build for Mono and IL2CPP
+dotnet build MetalStorage.csproj -c CrossCompat
+
 # Build for Mono
 dotnet build MetalStorage.csproj -c Mono
 
