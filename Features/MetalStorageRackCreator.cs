@@ -111,8 +111,8 @@ namespace MetalStorage.Features
             if (storage == null || string.IsNullOrEmpty(itemId))
                 return;
 
-            // Prevent double expansion - track by instance ID
-            int instanceId = storage.GetInstanceID();
+            // Prevent double expansion - track by ItemInstance hash code
+            int instanceId = storage.ItemInstance?.GetHashCode() ?? storage.GetHashCode();
             if (_expandedStorages.Contains(instanceId))
                 return;
 
