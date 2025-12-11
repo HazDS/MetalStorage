@@ -14,12 +14,17 @@ A MelonLoader mod for Schedule 1 that adds metal variants of storage racks.
 - Configurable extra storage slots per rack type, by default each rack has 2 extra slots
 - Configurable prices
 
+## Requirements
+
+- Schedule 1 (Mono or IL2CPP version)
+- MelonLoader: [Link](https://melonwiki.xyz/)
+- S1API: [Github](https://github.com/ifBars/S1API/) - [Thunderstore](https://thunderstore.io/c/schedule-i/p/ifBars/S1API_Forked/) - [Nexus](https://www.nexusmods.com/schedule1/mods/1194)
+
 ## Installation
 
-1. Install [MelonLoader](https://melonwiki.xyz/) for Schedule 1
-2. Copy the appropriate DLL to your `Mods` folder:
-   - **Mono version**: `MetalStorage_Mono.dll`
-   - **IL2CPP version**: `MetalStorage_Il2cpp.dll`
+1. Install MelonLoader for Schedule 1
+2. Install S1API (required dependency)
+3. Copy `MetalStorage.dll` to your `Mods` folder (works with both Mono and IL2CPP)
 
 ## Building
 
@@ -57,7 +62,7 @@ Example: Small rack has 4 base slots + 2 extra = 6 total slots. Note a maximum o
 | MediumRackPrice | 104 | Purchase price for Medium Metal Storage Rack |
 | LargeRackPrice | 144 | Purchase price for Large Metal Storage Rack |
 
-## Requirements
+## Credits
 
-- Schedule 1 (Mono or IL2CPP version)
-- MelonLoader
+- [HazDS](https://github.com/HazDS) - Original mod author
+- [ifBars](https://github.com/ifBars) - S1API cross-compatibility support

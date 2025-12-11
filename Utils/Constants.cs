@@ -6,7 +6,7 @@ namespace MetalStorage.Utils
         /// Mod information
         /// </summary>
         public const string MOD_NAME = "MetalStorage";
-        public const string MOD_VERSION = "1.0.0";
+        public const string MOD_VERSION = "1.1.0";
         public const string MOD_AUTHOR = "HazDS";
         public const string MOD_DESCRIPTION = "Adds metal variants of storage racks to the game.";
 
