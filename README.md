@@ -41,7 +41,7 @@ dotnet build MetalStorage.csproj -c Il2cpp
 
 ## How It Works
 
-The mod clones the original storage rack definitions and registers them as new items. When placed, a Harmony patch intercepts the item creation and modifies the material to remove the wood texture, leaving a clean metal appearance.
+The mod uses S1API to clone the original storage rack definitions and register them as new items. When placed, S1API build events customize the material by removing the wood texture and applying metallic properties for a clean industrial appearance. Storage events handle slot expansion for the configurable extra slots.
 
 ## Configuration
 
